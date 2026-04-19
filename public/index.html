@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暇アプリ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f0ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app { width: 100%; max-width: 420px; padding: 16px; }
+
+    /* ---- Login ---- */
+    #login {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(120,80,255,.12);
+    }
+    #login h1 { font-size: 2rem; margin-bottom: 8px; }
+    #login p  { color: #888; margin-bottom: 28px; }
+    #login input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0d8ff;
+      border-radius: 12px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #login input:focus { border-color: #7c4dff; }
+    #login button {
+      margin-top: 14px;
+      width: 100%;
+      padding: 14px;
+      background: #7c4dff;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #login button:hover { background: #6633ff; }
+
+    /* ---- Main ---- */
+    #main { display: none; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h2 { font-size: 1.2rem; color: #555; }
+    .header .myname { font-size: 1.6rem; font-weight: 800; color: #222; }
+
+    /* Big toggle button */
+    #toggle-btn {
+      display: block;
+      width: 100%;
+      padding: 28px 16px;
+      border: none;
+      border-radius: 20px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .2s;
+      margin-bottom: 24px;
+      letter-spacing: .04em;
+    }
+    #toggle-btn.busy {
+      background: #ede9ff;
+      color: #7c4dff;
+    }
+    #toggle-btn.busy:hover {
+      background: #ddd5ff;
+    }
+    #toggle-btn.free {
+      background: #7c4dff;
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(124,77,255,.35);
+    }
+    #toggle-btn.free:hover {
+      background: #6633ff;
+    }
+
+    /* User list */
+    .section-title {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: #aaa;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    #user-list {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0ecff;
+    }
+    .user-row:last-child { border-bottom: none; }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.free { background: #7c4dff; }
+    .dot.busy { background: #d0d0d0; }
+    .user-name { font-weight: 600; color: #333; flex: 1; }
+    .user-status {
+      font-size: .8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .user-status.free { background: #ede9ff; color: #7c4dff; }
+    .user-status.busy { background: #f5f5f5; color: #aaa; }
+
+    #empty-msg {
+      text-align: center;
+      padding: 24px;
+      color: #bbb;
+      font-size: .95rem;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #222;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: .95rem;
+      transition: transform .3s ease;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Login screen -->
+  <div id="login">
+    <h1>暇アプリ</h1>
+    <p>暇なことを友達に知らせよう</p>
+    <input id="name-input" type="text" placeholder="ニックネームを入力" maxlength="20" autocomplete="off">
+    <button id="join-btn">はじめる</button>
+  </div>
+
+  <!-- Main screen -->
+  <div id="main">
+    <div class="header">
+      <div class="myname" id="display-name"></div>
+      <div class="header h2">としてログイン中</div>
+    </div>
+
+    <button id="toggle-btn" class="busy">暇じゃない<br><span style="font-size:1rem;opacity:.7">→ 暇にする</span></button>
+
+    <div class="section-title">みんなの状態</div>
+    <div id="user-list">
+      <div id="empty-msg">まだ誰もいません</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  let myName = '';
+  let myStatus = 'busy';
+
+  const loginEl  = document.getElementById('login');
+  const mainEl   = document.getElementById('main');
+  const nameInput = document.getElementById('name-input');
+  const joinBtn  = document.getElementById('join-btn');
+  const displayName = document.getElementById('display-name');
+  const toggleBtn = document.getElementById('toggle-btn');
+  const userList = document.getElementById('user-list');
+  const emptyMsg = document.getElementById('empty-msg');
+  const toast    = document.getElementById('toast');
+
+  let toastTimer = null;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function join() {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    myName = name;
+    socket.emit('join', name);
+    loginEl.style.display = 'none';
+    mainEl.style.display = 'block';
+    displayName.textContent = name;
+  }
+
+  joinBtn.addEventListener('click', join);
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
+
+  toggleBtn.addEventListener('click', () => {
+    myStatus = myStatus === 'busy' ? 'free' : 'busy';
+    socket.emit('set_status', myStatus);
+    updateToggleBtn();
+  });
+
+  function updateToggleBtn() {
+    if (myStatus === 'free') {
+      toggleBtn.className = 'free';
+      toggleBtn.innerHTML = '暇！<br><span style="font-size:1rem;opacity:.8">→ 忙しくする</span>';
+    } else {
+      toggleBtn.className = 'busy';
+      toggleBtn.innerHTML = '暇じゃない<br><span style="font-size:1rem;opacity:.7">→ 暇にする</span>';
+    }
+  }
+
+  socket.on('users', (users) => {
+    if (users.length === 0) {
+      userList.innerHTML = '<div id="empty-msg">まだ誰もいません</div>';
+      return;
+    }
+    // Sort: free first, then by name
+    users.sort((a, b) => {
+      if (a.status === b.status) return a.name.localeCompare(b.name, 'ja');
+      return a.status === 'free' ? -1 : 1;
+    });
+    userList.innerHTML = users.map(u => `
+      <div class="user-row">
+        <div class="dot ${u.status}"></div>
+        <div class="user-name">${escHtml(u.name)}${u.name === myName ? ' (自分)' : ''}</div>
+        <div class="user-status ${u.status}">${u.status === 'free' ? '暇' : '忙しい'}</div>
+      </div>
+    `).join('');
+  });
+
+  socket.on('notify', ({ name }) => {
+    if (name !== myName) {
+      showToast(`${name} が暇になったよ！`);
+      // Try browser notification
+      if (Notification && Notification.permission === 'granted') {
+        new Notification('暇アプリ', { body: `${name} が暇になったよ！`, icon: '' });
+      }
+    }
+  });
+
+  // Request notification permission on join (best-effort)
+  joinBtn.addEventListener('click', () => {
+    if (Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  });
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

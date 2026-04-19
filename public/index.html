@@ -6,17 +6,16 @@
   <title>暇アプリ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #f5f0ff;
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
+      padding: 24px 16px 80px;
     }
-
-    #app { width: 100%; max-width: 420px; padding: 16px; }
+    #app { width: 100%; max-width: 420px; }
 
     /* ---- Login ---- */
     #login {
@@ -25,136 +24,144 @@
       padding: 40px 32px;
       text-align: center;
       box-shadow: 0 4px 24px rgba(120,80,255,.12);
+      margin-top: 60px;
     }
     #login h1 { font-size: 2rem; margin-bottom: 8px; }
     #login p  { color: #888; margin-bottom: 28px; }
     #login input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e0d8ff;
-      border-radius: 12px;
-      font-size: 1rem;
-      outline: none;
-      transition: border-color .2s;
+      width: 100%; padding: 14px 16px;
+      border: 2px solid #e0d8ff; border-radius: 12px;
+      font-size: 1rem; outline: none; transition: border-color .2s;
     }
     #login input:focus { border-color: #7c4dff; }
-    #login button {
-      margin-top: 14px;
-      width: 100%;
-      padding: 14px;
-      background: #7c4dff;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .2s;
+    .btn-primary {
+      display: block; width: 100%;
+      padding: 14px; background: #7c4dff; color: #fff;
+      border: none; border-radius: 12px; font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: background .2s;
+      margin-top: 12px;
     }
-    #login button:hover { background: #6633ff; }
+    .btn-primary:hover { background: #6633ff; }
+    .error-msg { color: #e53935; font-size: .85rem; margin-top: 8px; min-height: 20px; }
 
     /* ---- Main ---- */
     #main { display: none; }
 
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .header h2 { font-size: 1.2rem; color: #555; }
-    .header .myname { font-size: 1.6rem; font-weight: 800; color: #222; }
-
-    /* Big toggle button */
+    /* Status button */
     #toggle-btn {
-      display: block;
-      width: 100%;
-      padding: 28px 16px;
-      border: none;
-      border-radius: 20px;
-      font-size: 1.5rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all .2s;
-      margin-bottom: 24px;
-      letter-spacing: .04em;
+      display: block; width: 100%;
+      padding: 28px 16px; border: none; border-radius: 20px;
+      font-size: 1.5rem; font-weight: 800; cursor: pointer;
+      transition: all .2s; margin-bottom: 20px; letter-spacing: .04em;
     }
-    #toggle-btn.busy {
-      background: #ede9ff;
-      color: #7c4dff;
+    #toggle-btn.busy  { background: #ede9ff; color: #7c4dff; }
+    #toggle-btn.busy:hover { background: #ddd5ff; }
+    #toggle-btn.free  { background: #7c4dff; color: #fff; box-shadow: 0 6px 24px rgba(124,77,255,.35); }
+    #toggle-btn.free:hover { background: #6633ff; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 4px;
+      background: #e8e0ff; border-radius: 12px;
+      padding: 4px; margin-bottom: 16px;
     }
-    #toggle-btn.busy:hover {
-      background: #ddd5ff;
+    .tab {
+      flex: 1; padding: 8px; border: none; border-radius: 9px;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      background: transparent; color: #9b80ff; transition: all .2s; position: relative;
     }
-    #toggle-btn.free {
-      background: #7c4dff;
-      color: #fff;
-      box-shadow: 0 6px 24px rgba(124,77,255,.35);
-    }
-    #toggle-btn.free:hover {
-      background: #6633ff;
+    .tab.active { background: #fff; color: #7c4dff; }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #e53935; color: #fff;
+      width: 16px; height: 16px; border-radius: 50%;
+      font-size: .65rem; font-weight: 800;
+      margin-left: 4px; vertical-align: middle;
     }
 
-    /* User list */
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Card */
+    .card {
+      background: #fff; border-radius: 16px;
+      overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
     .section-title {
-      font-size: .8rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      color: #aaa;
-      text-transform: uppercase;
-      margin-bottom: 10px;
+      font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+      color: #aaa; text-transform: uppercase; margin-bottom: 10px;
     }
-    #user-list {
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    }
+
+    /* User rows */
     .user-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0ecff;
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid #f0ecff;
     }
     .user-row:last-child { border-bottom: none; }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .dot.free    { background: #7c4dff; }
+    .dot.busy    { background: #d0d0d0; }
+    .dot.offline { background: #ebebeb; border: 2px solid #d0d0d0; }
+    .user-name  { font-weight: 600; color: #333; flex: 1; }
+    .status-badge {
+      font-size: .75rem; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
     }
-    .dot.free { background: #7c4dff; }
-    .dot.busy { background: #d0d0d0; }
-    .user-name { font-weight: 600; color: #333; flex: 1; }
-    .user-status {
-      font-size: .8rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
+    .status-badge.free    { background: #ede9ff; color: #7c4dff; }
+    .status-badge.busy    { background: #f5f5f5; color: #aaa; }
+    .status-badge.offline { background: #f5f5f5; color: #ccc; }
+    .row-action {
+      font-size: .75rem; font-weight: 700; padding: 4px 10px;
+      border-radius: 20px; border: none; cursor: pointer;
     }
-    .user-status.free { background: #ede9ff; color: #7c4dff; }
-    .user-status.busy { background: #f5f5f5; color: #aaa; }
+    .btn-accept  { background: #7c4dff; color: #fff; margin-right: 4px; }
+    .btn-reject  { background: #f5f5f5; color: #aaa; }
+    .btn-remove  { background: #fff0f0; color: #e53935; }
 
-    #empty-msg {
-      text-align: center;
-      padding: 24px;
-      color: #bbb;
-      font-size: .95rem;
+    /* Add friend panel */
+    .search-row {
+      display: flex; gap: 8px; margin-bottom: 12px;
     }
+    .search-row input {
+      flex: 1; padding: 12px 14px;
+      border: 2px solid #e0d8ff; border-radius: 12px;
+      font-size: .95rem; outline: none; transition: border-color .2s;
+    }
+    .search-row input:focus { border-color: #7c4dff; }
+    .search-row button {
+      padding: 12px 16px; background: #7c4dff; color: #fff;
+      border: none; border-radius: 12px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    #search-result { min-height: 24px; font-size: .88rem; margin-bottom: 12px; }
+    #search-result.ok  { color: #7c4dff; }
+    #search-result.err { color: #e53935; }
+    #send-request-btn { display: none; }
+
+    .empty-msg {
+      text-align: center; padding: 28px; color: #ccc; font-size: .95rem;
+    }
+
+    /* Header */
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #7c4dff; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.2rem; font-weight: 800; flex-shrink: 0;
+    }
+    .header-name { font-size: 1.1rem; font-weight: 800; color: #222; }
+    .header-sub  { font-size: .8rem; color: #aaa; }
 
     /* Toast */
     #toast {
-      position: fixed;
-      bottom: 32px;
-      left: 50%;
+      position: fixed; bottom: 28px; left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: #222;
-      color: #fff;
-      padding: 14px 24px;
-      border-radius: 40px;
-      font-weight: 700;
-      font-size: .95rem;
-      transition: transform .3s ease;
-      white-space: nowrap;
-      pointer-events: none;
+      background: #222; color: #fff;
+      padding: 12px 22px; border-radius: 40px;
+      font-weight: 700; font-size: .9rem;
+      transition: transform .3s ease; white-space: nowrap; pointer-events: none;
+      z-index: 999;
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
@@ -162,127 +169,253 @@
 <body>
 <div id="app">
 
-  <!-- Login screen -->
+  <!-- Login -->
   <div id="login">
     <h1>暇アプリ</h1>
-    <p>暇なことを友達に知らせよう</p>
+    <p>暇なことをフレンドだけに知らせよう</p>
     <input id="name-input" type="text" placeholder="ニックネームを入力" maxlength="20" autocomplete="off">
-    <button id="join-btn">はじめる</button>
+    <div id="login-error" class="error-msg"></div>
+    <button class="btn-primary" id="join-btn">はじめる</button>
   </div>
 
-  <!-- Main screen -->
+  <!-- Main -->
   <div id="main">
     <div class="header">
-      <div class="myname" id="display-name"></div>
-      <div class="header h2">としてログイン中</div>
+      <div class="avatar" id="avatar-letter">?</div>
+      <div>
+        <div class="header-name" id="display-name"></div>
+        <div class="header-sub">ニックネームをフレンドに教えよう</div>
+      </div>
     </div>
 
     <button id="toggle-btn" class="busy">暇じゃない<br><span style="font-size:1rem;opacity:.7">→ 暇にする</span></button>
 
-    <div class="section-title">みんなの状態</div>
-    <div id="user-list">
-      <div id="empty-msg">まだ誰もいません</div>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="friends">フレンド</button>
+      <button class="tab" data-tab="requests">リクエスト<span id="req-badge" class="badge" style="display:none">0</span></button>
+      <button class="tab" data-tab="add">追加</button>
+    </div>
+
+    <!-- Friends panel -->
+    <div class="panel active" id="panel-friends">
+      <div class="section-title">フレンド一覧</div>
+      <div class="card" id="friends-list">
+        <div class="empty-msg">まだフレンドがいません<br>「追加」タブから探してみよう</div>
+      </div>
+    </div>
+
+    <!-- Requests panel -->
+    <div class="panel" id="panel-requests">
+      <div class="section-title">フレンドリクエスト</div>
+      <div class="card" id="requests-list">
+        <div class="empty-msg">リクエストはありません</div>
+      </div>
+    </div>
+
+    <!-- Add panel -->
+    <div class="panel" id="panel-add">
+      <div class="section-title">フレンドを追加</div>
+      <div class="search-row">
+        <input id="search-input" type="text" placeholder="ニックネームで検索" maxlength="20" autocomplete="off">
+        <button id="search-btn">検索</button>
+      </div>
+      <div id="search-result"></div>
+      <button class="btn-primary" id="send-request-btn">フレンドリクエストを送る</button>
     </div>
   </div>
 
 </div>
-
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
+const socket = io();
 
-  let myName = '';
-  let myStatus = 'busy';
+let myName = '';
+let myStatus = 'busy';
+let foundUser = null;
 
-  const loginEl  = document.getElementById('login');
-  const mainEl   = document.getElementById('main');
-  const nameInput = document.getElementById('name-input');
-  const joinBtn  = document.getElementById('join-btn');
-  const displayName = document.getElementById('display-name');
-  const toggleBtn = document.getElementById('toggle-btn');
-  const userList = document.getElementById('user-list');
-  const emptyMsg = document.getElementById('empty-msg');
-  const toast    = document.getElementById('toast');
+const loginEl     = document.getElementById('login');
+const mainEl      = document.getElementById('main');
+const nameInput   = document.getElementById('name-input');
+const joinBtn     = document.getElementById('join-btn');
+const loginError  = document.getElementById('login-error');
+const displayName = document.getElementById('display-name');
+const avatarLetter= document.getElementById('avatar-letter');
+const toggleBtn   = document.getElementById('toggle-btn');
+const friendsList = document.getElementById('friends-list');
+const requestsList= document.getElementById('requests-list');
+const searchInput = document.getElementById('search-input');
+const searchBtn   = document.getElementById('search-btn');
+const searchResult= document.getElementById('search-result');
+const sendReqBtn  = document.getElementById('send-request-btn');
+const reqBadge    = document.getElementById('req-badge');
+const toast       = document.getElementById('toast');
 
-  let toastTimer = null;
-
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-  }
-
-  function join() {
-    const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
-    myName = name;
-    socket.emit('join', name);
-    loginEl.style.display = 'none';
-    mainEl.style.display = 'block';
-    displayName.textContent = name;
-  }
-
-  joinBtn.addEventListener('click', join);
-  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
-
-  toggleBtn.addEventListener('click', () => {
-    myStatus = myStatus === 'busy' ? 'free' : 'busy';
-    socket.emit('set_status', myStatus);
-    updateToggleBtn();
+// --- Tabs ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
   });
+});
 
-  function updateToggleBtn() {
-    if (myStatus === 'free') {
-      toggleBtn.className = 'free';
-      toggleBtn.innerHTML = '暇！<br><span style="font-size:1rem;opacity:.8">→ 忙しくする</span>';
-    } else {
-      toggleBtn.className = 'busy';
-      toggleBtn.innerHTML = '暇じゃない<br><span style="font-size:1rem;opacity:.7">→ 暇にする</span>';
-    }
+// --- Toast ---
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// --- Login ---
+function join() {
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+  socket.emit('join', name);
+}
+joinBtn.addEventListener('click', join);
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
+
+socket.on('join_ok', (name) => {
+  myName = name;
+  loginEl.style.display = 'none';
+  mainEl.style.display = 'block';
+  displayName.textContent = name;
+  avatarLetter.textContent = Array.from(name)[0];
+  if (Notification && Notification.permission === 'default') Notification.requestPermission();
+});
+socket.on('join_error', (msg) => { loginError.textContent = msg; });
+
+// --- Status toggle ---
+toggleBtn.addEventListener('click', () => {
+  myStatus = myStatus === 'busy' ? 'free' : 'busy';
+  socket.emit('set_status', myStatus);
+  renderToggleBtn();
+});
+function renderToggleBtn() {
+  if (myStatus === 'free') {
+    toggleBtn.className = 'free';
+    toggleBtn.innerHTML = '暇！<br><span style="font-size:1rem;opacity:.8">→ 忙しくする</span>';
+  } else {
+    toggleBtn.className = 'busy';
+    toggleBtn.innerHTML = '暇じゃない<br><span style="font-size:1rem;opacity:.7">→ 暇にする</span>';
   }
+}
 
-  socket.on('users', (users) => {
-    if (users.length === 0) {
-      userList.innerHTML = '<div id="empty-msg">まだ誰もいません</div>';
-      return;
-    }
-    // Sort: free first, then by name
-    users.sort((a, b) => {
-      if (a.status === b.status) return a.name.localeCompare(b.name, 'ja');
-      return a.status === 'free' ? -1 : 1;
-    });
-    userList.innerHTML = users.map(u => `
-      <div class="user-row">
-        <div class="dot ${u.status}"></div>
-        <div class="user-name">${escHtml(u.name)}${u.name === myName ? ' (自分)' : ''}</div>
-        <div class="user-status ${u.status}">${u.status === 'free' ? '暇' : '忙しい'}</div>
-      </div>
-    `).join('');
+// --- Friends list ---
+socket.on('friends_update', (list) => {
+  if (!list.length) {
+    friendsList.innerHTML = '<div class="empty-msg">まだフレンドがいません<br>「追加」タブから探してみよう</div>';
+    return;
+  }
+  list.sort((a, b) => {
+    const order = { free: 0, busy: 1, offline: 2 };
+    return (order[a.status] ?? 2) - (order[b.status] ?? 2) || a.name.localeCompare(b.name, 'ja');
   });
-
-  socket.on('notify', ({ name }) => {
-    if (name !== myName) {
-      showToast(`${name} が暇になったよ！`);
-      // Try browser notification
-      if (Notification && Notification.permission === 'granted') {
-        new Notification('暇アプリ', { body: `${name} が暇になったよ！`, icon: '' });
+  friendsList.innerHTML = list.map(u => `
+    <div class="user-row">
+      <div class="dot ${u.online ? u.status : 'offline'}"></div>
+      <div class="user-name">${esc(u.name)}</div>
+      <span class="status-badge ${u.online ? u.status : 'offline'}">
+        ${u.online ? (u.status === 'free' ? '暇' : '忙しい') : 'オフライン'}
+      </span>
+      <button class="row-action btn-remove" data-name="${esc(u.name)}">削除</button>
+    </div>
+  `).join('');
+  friendsList.querySelectorAll('.btn-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm(`${btn.dataset.name} をフレンド削除しますか？`)) {
+        socket.emit('remove_friend', btn.dataset.name);
       }
-    }
+    });
   });
+});
 
-  // Request notification permission on join (best-effort)
-  joinBtn.addEventListener('click', () => {
-    if (Notification && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  });
-
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// --- Pending requests ---
+socket.on('pending_update', (list) => {
+  const count = list.length;
+  if (count > 0) {
+    reqBadge.textContent = count;
+    reqBadge.style.display = 'inline-flex';
+  } else {
+    reqBadge.style.display = 'none';
   }
+  if (!count) {
+    requestsList.innerHTML = '<div class="empty-msg">リクエストはありません</div>';
+    return;
+  }
+  requestsList.innerHTML = list.map(from => `
+    <div class="user-row">
+      <div class="dot busy"></div>
+      <div class="user-name">${esc(from)}</div>
+      <button class="row-action btn-accept" data-name="${esc(from)}">承認</button>
+      <button class="row-action btn-reject" data-name="${esc(from)}">拒否</button>
+    </div>
+  `).join('');
+  requestsList.querySelectorAll('.btn-accept').forEach(btn => {
+    btn.addEventListener('click', () => socket.emit('accept_friend', btn.dataset.name));
+  });
+  requestsList.querySelectorAll('.btn-reject').forEach(btn => {
+    btn.addEventListener('click', () => socket.emit('reject_friend', btn.dataset.name));
+  });
+});
+
+socket.on('friend_accepted', (name) => {
+  showToast(`${name} がフレンドになりました！`);
+});
+
+// --- Search & Add friend ---
+searchBtn.addEventListener('click', () => {
+  const target = searchInput.value.trim();
+  if (!target) return;
+  foundUser = null;
+  sendReqBtn.style.display = 'none';
+  socket.emit('search_user', target);
+});
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchBtn.click(); });
+
+socket.on('search_result', (res) => {
+  if (res.error) {
+    searchResult.textContent = res.error;
+    searchResult.className = 'err';
+    foundUser = null;
+    sendReqBtn.style.display = 'none';
+  } else {
+    searchResult.textContent = `「${res.found}」が見つかりました`;
+    searchResult.className = 'ok';
+    foundUser = res.found;
+    sendReqBtn.style.display = 'block';
+  }
+});
+
+sendReqBtn.addEventListener('click', () => {
+  if (!foundUser) return;
+  socket.emit('send_friend_request', foundUser);
+});
+socket.on('request_sent', (toName) => {
+  showToast(`${toName} にリクエストを送りました`);
+  searchResult.textContent = '';
+  searchInput.value = '';
+  sendReqBtn.style.display = 'none';
+  foundUser = null;
+});
+
+// --- Notify ---
+socket.on('notify', ({ name }) => {
+  showToast(`${name} が暇になったよ！`);
+  if (Notification && Notification.permission === 'granted') {
+    new Notification('暇アプリ', { body: `${name} が暇になったよ！` });
+  }
+});
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 </script>
 </body>
 </html>
